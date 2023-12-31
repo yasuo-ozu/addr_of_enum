@@ -50,7 +50,7 @@ fn to_tstr(s: &str, span: Span) -> TypeTuple {
         match c {
             'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => {
                 let ident = Ident::new(&format!("_{}", c), span.clone());
-                elems.push(parse_quote!(::enum_offset::_tstr::#ident));
+                elems.push(parse_quote!(::addr_of_enum::_tstr::#ident));
             }
             _ => abort!(span, "Bad char '{}'", c),
         }
@@ -63,10 +63,10 @@ fn to_tstr(s: &str, span: Span) -> TypeTuple {
 
 #[proc_macro_error]
 #[proc_macro]
-pub fn enum_offset(input: TokenStream) -> TokenStream {
+pub fn addr_of_enum(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as MacroArgs);
     quote! {
-        <_ as ::enum_offset::EnumHasTagAndField<
+        <_ as ::addr_of_enum::EnumHasTagAndField<
             #{to_tstr(&args.variant.to_string(), args.variant.span())},
             #{to_tstr(&args.field.to_string(), args.field.span())}
         >>::addr_of(#{&args.expr})
@@ -75,13 +75,13 @@ pub fn enum_offset(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_error]
-#[proc_macro_derive(EnumOffset)]
+#[proc_macro_derive(AddrOfEnum)]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemEnum);
     let (g_impl, g_type, g_where) = input.generics.split_for_impl();
     let mut trait_impls = quote! {
         #[automatically_derived]
-        unsafe impl #g_impl ::enum_offset::EnumOffset for #{&input.ident} #g_type #g_where {}
+        unsafe impl #g_impl ::addr_of_enum::AddrOfEnum for #{&input.ident} #g_type #g_where {}
     };
     let mut replaced_input = input.clone();
     replaced_input.ident = Ident::new("GhostEnum", input.ident.span());
@@ -105,7 +105,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     trait_impls = quote! {
                         #trait_impls
                         #[automatically_derived]
-                        unsafe impl #g_impl ::enum_offset::EnumHasTagAndField<
+                        unsafe impl #g_impl ::addr_of_enum::EnumHasTagAndField<
                             #{to_tstr(&variant.ident.to_string(), variant.ident.span())},
                             #{to_tstr(&field_ident.to_string(), field_ident.span())},
                         > for #{&input.ident} #g_type #g_where {
@@ -150,7 +150,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         trait_impls = quote! {
                             #trait_impls
                             #[automatically_derived]
-                            unsafe impl #g_impl ::enum_offset::EnumHasTagAndField<
+                            unsafe impl #g_impl ::addr_of_enum::EnumHasTagAndField<
                                 #{to_tstr(&variant.ident.to_string(), variant.ident.span())},
                                 #{to_tstr(&format!("{}", nth), field.span())},
                             > for #{&input.ident} #g_type #g_where {

@@ -1,8 +1,8 @@
-pub use enum_offset_macro::{enum_offset, EnumOffset};
+pub use addr_of_enum_macro::{addr_of_enum, AddrOfEnum};
 
-pub unsafe trait EnumOffset {}
+pub unsafe trait AddrOfEnum {}
 
-pub unsafe trait EnumHasTagAndField<TSTag, TSField>: EnumOffset {
+pub unsafe trait EnumHasTagAndField<TSTag, TSField>: AddrOfEnum {
     type Ty;
     fn addr_of(ptr: *const Self) -> *const Self::Ty;
 }
