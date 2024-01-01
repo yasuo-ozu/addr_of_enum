@@ -3,6 +3,10 @@ name = "addr_of_enum"
 version = "0.1.0"
 edition = "2021"
 description = "Get address of fields in enum item using stable Rust"
+license = "MIT"
+keywords = ["macros"]
+categories = ["memory-management"]
+repository = "https://github.com/yasuo-ozu/addr_of_enum"
 
 [lib]
 path = "lib.rs"

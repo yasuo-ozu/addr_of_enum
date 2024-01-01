@@ -1,7 +1,11 @@
+#![doc = include_str!("README.md")]
+
 pub use addr_of_enum_macro::{addr_of_enum, AddrOfEnum};
 
+/// This trait is implemented with `#[derive(AddrOfEnum)]`
 pub unsafe trait AddrOfEnum {}
 
+#[doc(hidden)]
 pub unsafe trait EnumHasTagAndField<TSTag, TSField>: AddrOfEnum {
     type Ty;
     fn addr_of(ptr: *const Self) -> *const Self::Ty;

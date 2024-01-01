@@ -1,3 +1,5 @@
+//! Use [`addr_of_enum crate`](//crates.io/crates/addr_of_enum) instead.
+
 use derive_syn_parse::Parse;
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
@@ -61,6 +63,7 @@ fn to_tstr(s: &str, span: Span) -> TypeTuple {
     }
 }
 
+/// See crate level documentation
 #[proc_macro_error]
 #[proc_macro]
 pub fn addr_of_enum(input: TokenStream) -> TokenStream {
@@ -74,6 +77,7 @@ pub fn addr_of_enum(input: TokenStream) -> TokenStream {
     .into()
 }
 
+/// This macro impls [`AddrOfEnum`] trait. It works only on enums.
 #[proc_macro_error]
 #[proc_macro_derive(AddrOfEnum)]
 pub fn derive(input: TokenStream) -> TokenStream {
