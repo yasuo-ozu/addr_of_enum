@@ -1,6 +1,18 @@
 #![doc = include_str!("README.md")]
 
-pub use addr_of_enum_macro::{addr_of_enum, AddrOfEnum};
+pub use addr_of_enum_macro::AddrOfEnum;
+
+#[doc(hidden)]
+pub mod macro_def {
+    pub use addr_of_enum_macro::addr_of_enum as macro_addr_of_enum;
+
+    #[macro_export]
+    macro_rules! addr_of_enum {
+        ($e:expr, $tag:ident, $t:tt) => {
+            $crate::macro_def::macro_addr_of_enum!($crate, $e, $tag, $t)
+        };
+    }
+}
 
 /// This trait is implemented with `#[derive(AddrOfEnum)]`
 pub unsafe trait AddrOfEnum {}
