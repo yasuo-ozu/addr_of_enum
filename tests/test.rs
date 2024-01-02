@@ -1,4 +1,4 @@
-use addr_of_enum::{addr_of_enum, AddrOfEnum};
+use addr_of_enum::{addr_of_enum, get_discriminant, AddrOfEnum};
 use core::convert::Infallible;
 
 #[derive(AddrOfEnum)]
@@ -38,4 +38,6 @@ fn test() {
         }
         _ => panic!(),
     }
+    assert_eq!(core::mem::discriminant(&e1), get_discriminant!(E<u8>, E1));
+    assert_eq!(core::mem::discriminant(&e2), get_discriminant!(E<u8>, E2));
 }

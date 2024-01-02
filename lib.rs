@@ -4,21 +4,37 @@ pub use addr_of_enum_macro::AddrOfEnum;
 
 #[doc(hidden)]
 pub mod macro_def {
-    pub use addr_of_enum_macro::addr_of_enum as macro_addr_of_enum;
+    pub use addr_of_enum_macro::get_tstr;
 
+    /// See crate level documentation
     #[macro_export]
     macro_rules! addr_of_enum {
-        ($e:expr, $tag:ident, $t:tt) => {
-            $crate::macro_def::macro_addr_of_enum!($crate, $e, $tag, $t)
+        ($e:expr, $tag:ident, $field:tt) => {
+            <_ as $crate::EnumHasTagAndField<
+                $crate::macro_def::get_tstr!($crate, $tag),
+                $crate::macro_def::get_tstr!($crate, $field),
+            >>::addr_of($e as *const _)
+        };
+    }
+
+    #[macro_export]
+    macro_rules! get_discriminant {
+        ($enum_ty:ty, $tag:ident) => {
+            <$enum_ty as $crate::EnumHasTag<$crate::macro_def::get_tstr!($crate, $tag)>>::discriminant()
         };
     }
 }
 
 /// This trait is implemented with `#[derive(AddrOfEnum)]`
-pub unsafe trait AddrOfEnum {}
+pub unsafe trait AddrOfEnum: Sized {}
 
 #[doc(hidden)]
-pub unsafe trait EnumHasTagAndField<TSTag, TSField>: AddrOfEnum {
+pub unsafe trait EnumHasTag<TSTag>: AddrOfEnum {
+    fn discriminant() -> core::mem::Discriminant<Self>;
+}
+
+#[doc(hidden)]
+pub unsafe trait EnumHasTagAndField<TSTag, TSField>: EnumHasTag<TSTag> {
     type Ty;
     fn addr_of(ptr: *const Self) -> *const Self::Ty;
 }

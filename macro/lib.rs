@@ -14,13 +14,7 @@ struct MacroArgs {
     krate: Path,
     #[allow(unused)]
     _comma_0: Token![,],
-    expr: Expr,
-    #[allow(unused)]
-    _comma_1: Token![,],
-    variant: Ident,
-    #[allow(unused)]
-    _comma_2: Token![,],
-    field: IdentOrNum,
+    name: IdentOrNum,
 }
 
 #[derive(Parse, Debug)]
@@ -66,16 +60,12 @@ fn to_tstr(krate: &Path, s: &str, span: Span) -> TypeTuple {
     }
 }
 
-/// See crate level documentation
 #[proc_macro_error]
 #[proc_macro]
-pub fn addr_of_enum(input: TokenStream) -> TokenStream {
+pub fn get_tstr(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as MacroArgs);
     quote! {
-        <_ as #{&args.krate}::EnumHasTagAndField<
-            #{to_tstr(&args.krate, &args.variant.to_string(), args.variant.span())},
-            #{to_tstr(&args.krate, &args.field.to_string(), args.field.span())}
-        >>::addr_of(#{&args.expr})
+        #{to_tstr(&args.krate, &args.name.to_string(), args.name.span())}
     }
     .into()
 }
@@ -107,13 +97,43 @@ pub fn derive(input: TokenStream) -> TokenStream {
         .collect();
     replaced_input.ident = Ident::new("GhostEnum", input.ident.span());
     replaced_input.variants.iter_mut().for_each(|variant| {
+        // `GhostEnum` initialization will be wiped out with
+        // optimization in release mode, so it is zerocost
+        let initializer = match &variant.fields {
+            Fields::Named(_) => {
+                quote! {
+                    GhostEnum::#{&variant.ident} {
+                        #(for field in variant.fields.iter()) {
+                            #{&field.ident}: ::core::mem::MaybeUninit::uninit(),
+                        }
+                    }
+                }
+            }
+            Fields::Unnamed(_) => {
+                quote! {
+                    GhostEnum::#{&variant.ident} (
+                        #(for _ in variant.fields.iter()) {::core::mem::MaybeUninit::uninit(),}
+                    )
+                }
+            }
+            _ => quote! {GhostEnum},
+        };
+        trait_impls = quote!{
+            #trait_impls
+            unsafe impl #g_impl #krate::EnumHasTag<
+                #{to_tstr(&krate, &variant.ident.to_string(), variant.ident.span())},
+            > for #{&input.ident} #g_type #g_where {
+                fn discriminant() -> core::mem::Discriminant<Self> {
+                    let val: GhostEnum #g_type = #initializer;
+                    /// SAFETY: both has same memory layout
+                    unsafe {
+                        ::core::mem::transmute(::core::mem::discriminant(&val))
+                    }
+                }
+            }
+        };
         match &mut variant.fields {
             Fields::Named(fields) => {
-                let field_idents: Vec<_> = fields
-                    .named
-                    .iter()
-                    .map(|field| field.ident.clone())
-                    .collect();
                 fields.named.iter_mut().for_each(|field| {
                     let t = field.ty.clone();
                     // Replace type `T` with `MaybeUninit<T>`, which has the same memory
@@ -132,13 +152,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         > for #{&input.ident} #g_type #g_where {
                             type Ty = #t;
                             fn addr_of(ptr: *const Self) -> *const Self::Ty {
-                                // `GhostEnum` initialization will be wiped out with
-                                // optimization in release mode, so it is zerocost
-                                let en: GhostEnum #g_type = GhostEnum::#{&variant.ident}{
-                                    #(for item in field_idents.iter()) {
-                                        #item: ::core::mem::MaybeUninit::uninit(),
-                                    }
-                                };
+                                let en: GhostEnum #g_type = #initializer;
                                 match &en {
                                     GhostEnum::#{&variant.ident} {
                                         #{&field.ident},
@@ -177,13 +191,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                             > for #{&input.ident} #g_type #g_where {
                                 type Ty = #t;
                                 fn addr_of(ptr: *const Self) -> *const Self::Ty {
-                                    // `GhostEnum` initialization will be wiped out with
-                                    // optimization in release mode, so it is zerocost
-                                    let en: GhostEnum #g_type = GhostEnum::#{&variant.ident}(
-                                        #(for _ in 0..nfields) {
-                                            ::core::mem::MaybeUninit::uninit(),
-                                        }
-                                    );
+                                    let en: GhostEnum #g_type = #initializer;
                                     match &en {
                                         GhostEnum::#{&variant.ident} (
                                             #(for _ in 0..nth) { _, }
