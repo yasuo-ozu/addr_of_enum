@@ -116,7 +116,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     )
                 }
             }
-            _ => quote! {GhostEnum},
+            _ => quote! {GhostEnum::#{&variant.ident}},
         };
         trait_impls = quote!{
             #trait_impls

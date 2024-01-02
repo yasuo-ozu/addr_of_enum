@@ -4,7 +4,12 @@ use core::convert::Infallible;
 #[derive(AddrOfEnum)]
 enum E<T> {
     E1(usize, u8, u16),
-    E2 { item1: u32, item2: T },
+    E2 {
+        item1: u32,
+        item2: T,
+    },
+    #[allow(unused)]
+    E3,
 }
 #[test]
 fn test() {

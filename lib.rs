@@ -35,7 +35,7 @@ pub unsafe trait EnumHasTag<TSTag>: AddrOfEnum {
 
 #[doc(hidden)]
 pub unsafe trait EnumHasTagAndField<TSTag, TSField>: EnumHasTag<TSTag> {
-    type Ty;
+    type Ty: Sized;
     fn addr_of(ptr: *const Self) -> *const Self::Ty;
 }
 
