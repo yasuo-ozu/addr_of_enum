@@ -1,6 +1,6 @@
 [package]
 name = "addr_of_enum"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "Get address of fields in enum item using stable Rust"
 license = "MIT"
@@ -12,7 +12,7 @@ repository = "https://github.com/yasuo-ozu/addr_of_enum"
 path = "lib.rs"
 
 [dependencies]
-addr_of_enum_macro = { path = "./macro", version = "0.1.3" }
+addr_of_enum_macro = { path = "./macro", version = "0.1.4" }
 
 [workspace]
 members = [".", "macro"]
