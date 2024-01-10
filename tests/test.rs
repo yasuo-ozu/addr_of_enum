@@ -2,6 +2,8 @@ use addr_of_enum::{addr_of_enum, get_discriminant, AddrOfEnum};
 use core::convert::Infallible;
 
 #[derive(AddrOfEnum)]
+// Disturb rustfmt
+#[derive(PartialEq, Eq)]
 enum E<T> {
     E1(usize, u8, u16),
     E2 {

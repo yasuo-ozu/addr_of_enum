@@ -93,7 +93,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     replaced_input.attrs = replaced_input
         .attrs
         .into_iter()
-        .filter(|attr| !attr.path.is_ident("addr_of_enum"))
+        .filter(|attr| attr.path.is_ident("repr"))
         .collect();
     replaced_input.ident = Ident::new("GhostEnum", input.ident.span());
     replaced_input.variants.iter_mut().for_each(|variant| {
