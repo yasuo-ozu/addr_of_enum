@@ -12,6 +12,7 @@ It also works on variables which has uninhabited types.
 # use addr_of_enum::{addr_of_enum, AddrOfEnum};
 
 #[derive(AddrOfEnum)]
+#[repr(C)]
 enum MyEnum {
     E1(usize, u8),
     E2 {
