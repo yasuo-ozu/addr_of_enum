@@ -95,6 +95,23 @@ pub fn derive(input: TokenStream) -> TokenStream {
         .into_iter()
         .filter(|attr| attr.path.is_ident("repr"))
         .collect();
+    let mut has_repr_c = false;
+    for attr in replaced_input.attrs.iter() {
+        let tkns: TokenStream = quote! {#{attr.parse_meta().unwrap()}}.into();
+        let meta = attr.parse_meta().unwrap();
+        if let Meta::List(list) = meta {
+            for item in &list.nested {
+                if let NestedMeta::Meta(Meta::Path(p)) = item {
+                    if p.is_ident("C") {
+                        has_repr_c = true;
+                    }
+                }
+            }
+        }
+    }
+    if !has_repr_c {
+        abort!(Span::call_site(), "You should specify #[repr(C)]")
+    }
     replaced_input.ident = Ident::new("GhostEnum", input.ident.span());
     replaced_input.variants.iter_mut().for_each(|variant| {
         // `GhostEnum` initialization will be wiped out with
