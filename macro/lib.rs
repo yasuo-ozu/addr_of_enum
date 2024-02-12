@@ -97,7 +97,6 @@ pub fn derive(input: TokenStream) -> TokenStream {
         .collect();
     let mut has_repr_c = false;
     for attr in replaced_input.attrs.iter() {
-        let tkns: TokenStream = quote! {#{attr.parse_meta().unwrap()}}.into();
         let meta = attr.parse_meta().unwrap();
         if let Meta::List(list) = meta {
             for item in &list.nested {
